@@ -9,7 +9,7 @@ yours first.** It introspects your repo's tech stack and generates a harness
 tailored to it — a `CLAUDE.md` spine, a stack-specific architect agent, and a
 verify hook wired to your repo's *real* test/lint commands.
 
-![harness-kit introspecting a repo](docs/demo.gif)
+![Running /harness-kit:introspect in Claude Code](docs/demo.gif)
 
 A focused engine, not a kitchen sink: it detects your stack (reading configs
 statically, never executing them) and fits a `plan → work → verify → feedback`
