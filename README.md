@@ -1,13 +1,19 @@
 # Harness Kit
 
-A small, opinionated Claude Code plugin that gives any repository a
-**plan → work → verify → feedback** engineering discipline — and an `introspect`
-skill that scans the repo's tech stack and **tailors the setup to it**.
+[![CI](https://github.com/jhlee0409/claude-harness-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/jhlee0409/claude-harness-kit/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
+[![Release](https://img.shields.io/github/v/release/jhlee0409/claude-harness-kit?sort=semver)](https://github.com/jhlee0409/claude-harness-kit/releases)
 
-Most Claude Code harnesses are either kitchen-sink collections (hundreds of
-agents/skills) or one-size-fits-all discipline frameworks. Harness Kit is the
-opposite: a focused engine plus a generator that fits the engine to *your* repo's
-real test-runner, build, and lint commands.
+**Most Claude Code harnesses ship the same config to every repo. Harness Kit reads
+yours first.** It introspects your repo's tech stack and generates a harness
+tailored to it — a `CLAUDE.md` spine, a stack-specific architect agent, and a
+verify hook wired to your repo's *real* test/lint commands.
+
+![harness-kit introspecting a repo](docs/demo.gif)
+
+A focused engine, not a kitchen sink: it detects your stack (reading configs
+statically, never executing them) and fits a `plan → work → verify → feedback`
+discipline to *your* real commands.
 
 ## What's inside
 

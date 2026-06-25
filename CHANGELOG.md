@@ -4,7 +4,9 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project adheres
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.1.0] - 2026-06-26
+
+First public release.
 
 ### Added
 - `introspect` skill: scans a target repo's stack and generates a tailored harness
@@ -32,4 +34,4 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   runs every `tests/*_test.sh`.
 - Plugin + marketplace manifests, MIT license, community-profile files, CI.
 
-[Unreleased]: https://github.com/jhlee0409/claude-harness-kit/commits/main
+[0.1.0]: https://github.com/jhlee0409/claude-harness-kit/releases/tag/v0.1.0
