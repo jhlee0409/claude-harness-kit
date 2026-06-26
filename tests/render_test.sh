@@ -74,6 +74,11 @@ printf '{"name":"app","dependencies":{}}' > "$TMP/re/package.json"
 bash "$RENDER" "$TMP/re" --out "$TMP/re-out" >/dev/null 2>&1
 [ ! -f "$TMP/re-out/db-verify.md" ] && ok "stale db-verify reaped on re-run after data layer dropped" || no "orphan db-verify left behind"
 
+echo "[10] blank slate (no manifest) — render generates nothing and exits 0, no crash"
+mkdir -p "$TMP/blank"
+[ "$(render blank)" = "0" ] && ok "render exits 0 on a stackless repo" || no "render errored on blank repo"
+[ -z "$(ls -A "$TMP/blank-out" 2>/dev/null)" ] && ok "no agent files generated for a stackless repo" || no "generated spurious agents on blank repo"
+
 echo ""
 echo "RESULT: $PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ]

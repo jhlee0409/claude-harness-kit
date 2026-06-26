@@ -158,6 +158,34 @@ if [ -f Cargo.toml ]; then
   [ -z "$project_name" ] && project_name="$(awk -F'"' '/^\[package\]/{p=1} p&&/^name[[:space:]]*=/{print $2; exit}' Cargo.toml 2>/dev/null)"
 fi
 
+# --- Ruby (Gemfile) — promised in §2; implement so the engine matches the doc. ---
+if [ -f Gemfile ]; then
+  add languages "ruby"
+  if grep -qsiE 'rspec' Gemfile Gemfile.lock 2>/dev/null; then
+    [ -z "$test_runner" ] && { test_runner="rspec"; test_cmd="bundle exec rspec"; }
+  elif grep -qsiE 'minitest|\brake\b' Gemfile Gemfile.lock 2>/dev/null; then
+    [ -z "$test_runner" ] && { test_runner="minitest"; test_cmd="rake test"; }
+  fi
+  grep -qsiE '\brails\b'   Gemfile 2>/dev/null && add frameworks "rails"
+  grep -qsiE '\bsinatra\b' Gemfile 2>/dev/null && add frameworks "sinatra"
+  [ -f Gemfile.lock ] && [ -z "$pkg_manager" ] && pkg_manager="bundler"
+fi
+
+# --- JVM (Maven pom.xml / Gradle build.gradle[.kts]) — promised in §2. ---
+if [ -f pom.xml ] || [ -f build.gradle ] || [ -f build.gradle.kts ]; then
+  if [ -f build.gradle.kts ] || grep -qsiE 'kotlin' build.gradle pom.xml 2>/dev/null; then
+    add languages "kotlin"
+  else
+    add languages "java"
+  fi
+  if [ -f pom.xml ]; then
+    [ -z "$test_runner" ] && { test_runner="maven"; test_cmd="mvn test"; build_cmd="mvn package"; }
+    [ -z "$project_name" ] && project_name="$(grep -oE '<artifactId>[^<]+' pom.xml 2>/dev/null | head -1 | sed 's/<artifactId>//')"
+  else
+    [ -z "$test_runner" ] && { test_runner="gradle"; test_cmd="./gradlew test"; build_cmd="./gradlew build"; }
+  fi
+fi
+
 # --- L3: monorepo topology — list member manifests (polyglot-aware) ---
 # Scan subtrees so a polyglot repo (e.g. python root + node subdir) is flagged as a
 # monorepo and its members listed. This only NAMES members; introspect re-runs this
@@ -173,8 +201,9 @@ done < <(find . -maxdepth 3 \
           \( -name node_modules -o -name .git -o -name dist -o -name build -o -name .venv \
              -o -name .next -o -name coverage -o -name .turbo -o -name out \) -prune -o \
           \( -name package.json -o -name pyproject.toml -o -name go.mod -o -name Cargo.toml \
-             -o -name requirements.txt -o -name setup.py -o -name setup.cfg \) -print 2>/dev/null \
-          | grep -vE '^\./(package\.json|pyproject\.toml|go\.mod|Cargo\.toml|requirements\.txt|setup\.py|setup\.cfg)$' \
+             -o -name requirements.txt -o -name setup.py -o -name setup.cfg \
+             -o -name Gemfile -o -name pom.xml -o -name build.gradle -o -name build.gradle.kts \) -print 2>/dev/null \
+          | grep -vE '^\./(package\.json|pyproject\.toml|go\.mod|Cargo\.toml|requirements\.txt|setup\.py|setup\.cfg|Gemfile|pom\.xml|build\.gradle|build\.gradle\.kts)$' \
           | sed 's#/[^/]*$##; s#^\./##' | sort -u | head -20)
 if [ -f pnpm-workspace.yaml ] || [ -f turbo.json ] || [ -f lerna.json ] \
    || grep -qs '"workspaces"' package.json 2>/dev/null || [ -n "$members" ]; then

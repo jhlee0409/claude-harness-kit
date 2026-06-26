@@ -151,6 +151,27 @@ check "$j" "['members']" "worker" "requirements.txt-only sub-package surfaced as
 dupcount="$(printf '%s' "$j" | python3 -c "import json,sys;m=json.load(sys.stdin)['members'];print(m.count('svc'))")"
 [ "$dupcount" = "1" ] && { echo "  PASS: dir with 2 manifests listed once (D7 dedup)"; PASS=$((PASS+1)); } || { echo "  FAIL: svc listed $dupcount times (dup-member bug)"; FAIL=$((FAIL+1)); }
 
+echo "[13] Ruby (Gemfile) — promised in SKILL §2, now implemented"
+f="$TMP/rb"; mkdir -p "$f"; printf 'source "x"\ngem "rails"\ngem "rspec"\n' > "$f/Gemfile"; : > "$f/Gemfile.lock"
+j="$(bash "$DETECT" "$f" 2>/dev/null)"
+check "$j" "['languages']" "ruby" "ruby detected"
+check "$j" "['frameworks']" "rails" "rails framework"
+check "$j" "['test_cmd']" "bundle exec rspec" "rspec test_cmd"
+check "$j" "['package_manager']" "bundler" "bundler from Gemfile.lock"
+
+echo "[14] JVM (Maven pom.xml) — promised in SKILL §2, now implemented"
+f="$TMP/jv"; mkdir -p "$f"; printf '<project><artifactId>myapp</artifactId></project>\n' > "$f/pom.xml"
+j="$(bash "$DETECT" "$f" 2>/dev/null)"
+check "$j" "['languages']" "java" "java detected"
+check "$j" "['test_cmd']" "mvn test" "maven test_cmd"
+check "$j" "['project_name']" "myapp" "name from pom.xml artifactId"
+
+echo "[15] blank slate (no manifest) — graceful empty, valid JSON, no crash"
+f="$TMP/blank"; mkdir -p "$f"
+j="$(bash "$DETECT" "$f" 2>/dev/null)"
+printf '%s' "$j" | python3 -c "import json,sys;d=json.load(sys.stdin);sys.exit(0 if d['languages']==[] and d['frameworks']==[] and d['test_runner']=='' else 1)" \
+  && ok "blank repo → all-empty detection, valid JSON" || no "blank repo broke detection"
+
 echo ""
 echo "RESULT: $PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ]

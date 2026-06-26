@@ -69,6 +69,23 @@ directly.
 
 ## 3. Classify into tiers
 
+**First, the edge of the distribution** (the kit serves greenfield → legacy, any stack,
+any locale — handle these before the normal path):
+- **No manifest at all (blank / greenfield repo)** → there is no stack to tailor.
+  Generate ONLY the generic §0 discipline spine; keep the stack-specific slots minimal
+  or empty (no architect, no critics — `render.sh` correctly writes nothing), and add one
+  line: *"No stack detected yet — re-run `/harness-kit:introspect` once you add a manifest
+  (package.json / pyproject.toml / go.mod / Cargo.toml / Gemfile / pom.xml) to tailor the
+  architect + critics."* Don't fabricate a stack.
+- **A manifest `detect.sh` doesn't cover** (composer.json / mix.exs / *.csproj /
+  pubspec.yaml / deno.json …) → `detect.sh` returns empty `languages`, so `render.sh`
+  writes no architect. READ that manifest yourself and hand-write a `<stack>-architect`
+  from `templates/agents/stack-architect.md` using its REAL test/build commands (the
+  deterministic renderer only covers the detected stacks node/python/go/rust/ruby/jvm;
+  for any other, fill the template manually and cite the manifest you read).
+- **Output language**: the generated harness is **English** (the kit's lingua franca);
+  do not localize the rules or structure.
+
 - **Tier 1 — always.** The CLAUDE.md §0 spine + the generic critics from the
   plugin. Every repo gets this.
 - **Tier 2 — conditional, you generate it:**

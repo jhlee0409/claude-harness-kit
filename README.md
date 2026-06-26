@@ -112,6 +112,13 @@ macOS and Linux are supported; on Windows use WSL or Git-Bash. Without `python3`
 hooks **fail open silently** — they never block your work, but the guard you expect
 is simply absent.
 
+**Stack coverage & language.** The deterministic detector covers Node / TypeScript /
+Python / Go / Rust / Ruby / JVM (Maven & Gradle); any other stack (PHP, Elixir, .NET,
+Deno, …) degrades gracefully — introspect reads its manifest and still tailors a basic
+architect. A **blank/greenfield** repo with no manifest gets the universal discipline
+spine plus a "re-run once you add a stack" note. The **generated harness is in English**
+(no localization of the rules/structure).
+
 ## Status
 
 Early PoC (0.x — expect breaking changes). What is actually proven, stated honestly:

@@ -6,6 +6,29 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-06-26
+
+User-diversity coverage — handle the tails of the real-user distribution
+(greenfield / unknown stack / non-Node-Python) that the detector previously left
+silently under-served.
+
+### Added
+- **Ruby + JVM detection** — `detect.sh` now implements the `Gemfile` (Ruby: rspec /
+  minitest, rails / sinatra, bundler) and `pom.xml` / `build.gradle[.kts]` (Java /
+  Kotlin: Maven / Gradle test+build commands, name from `<artifactId>`) markers that
+  SKILL §2 already promised — closing a doc-over-promise where a Ruby/JVM repo was
+  silently treated as stackless. `render.sh` renders their architects unchanged (it's
+  stack-agnostic). Added to the monorepo member markers too.
+- **Edge-of-distribution guidance** (SKILL §3): a **blank/greenfield** repo (no
+  manifest) now gets only the universal §0 discipline spine + a "re-run once you add a
+  stack" note (no fabricated stack); a manifest `detect.sh` doesn't cover
+  (composer.json / mix.exs / *.csproj / deno.json …) gets a documented LLM fallback —
+  read the manifest, hand-write a basic architect from the template — so an uncovered
+  stack degrades gracefully instead of getting nothing.
+- README documents stack coverage + that the generated harness is **English** (no
+  localization of rules/structure).
+- +9 tests (→ 159): Ruby, JVM, blank-slate detection + blank-slate render.
+
 ## [0.4.1] - 2026-06-26
 
 Integration-audit fixes — close the connection-point holes between the plugin and
@@ -254,6 +277,7 @@ First public release.
 - `.claude/harness-kit.json` per-repo config; plugin + marketplace manifests, MIT
   license, community-profile files, CI. 37 tests.
 
+[0.5.0]: https://github.com/jhlee0409/claude-harness-kit/releases/tag/v0.5.0
 [0.4.1]: https://github.com/jhlee0409/claude-harness-kit/releases/tag/v0.4.1
 [0.4.0]: https://github.com/jhlee0409/claude-harness-kit/releases/tag/v0.4.0
 [0.3.4]: https://github.com/jhlee0409/claude-harness-kit/releases/tag/v0.3.4
