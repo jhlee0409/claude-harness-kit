@@ -6,6 +6,18 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+- **IP / attribution hygiene** (from an adversarial copyright audit — verdict was
+  CLEAN, these are norm nits, no obligation existed): added a "not affiliated with
+  Anthropic" disclaimer to the README ("Claude" / "Claude Code" used descriptively);
+  renamed the `karpathy-guidelines` skill → `coding-guidelines` to drop a person's
+  name from the public slug (content unchanged); fixed the `marketplace.json`
+  `$schema` to the resolvable community URL (`json.schemastore.org/claude-code-marketplace.json`)
+  — the previous `anthropic.com` URL 404'd and implied false provenance. The audit
+  confirmed: no third-party code is vendored, no copied license headers, and no
+  internal/proprietary content leaked (the engine is original bash; references like
+  github-linguist / package-manager-detector are credited ideas, not copied code).
+
 ## [0.3.1] - 2026-06-26
 
 A security + honesty patch from an adversarial OSS-readiness audit.

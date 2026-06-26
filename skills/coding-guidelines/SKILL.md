@@ -1,5 +1,5 @@
 ---
-name: karpathy-guidelines
+name: coding-guidelines
 description: >-
   Behavioral guidelines that reduce common LLM coding mistakes — surgical changes,
   no overcomplication, surface assumptions, define verifiable success, no silent

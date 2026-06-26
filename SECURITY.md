@@ -26,3 +26,11 @@ This plugin ships shell hooks and a detection script that run on the user's
 machine. The detection engine reads project config files **statically and never
 executes them** — a deviation from that (executing target code) is a security
 bug worth reporting.
+
+## History note
+
+The git history was rewritten once (≤ v0.3.1) to remove a maintainer-identity
+string that had leaked into early manifest blobs. This is **mitigation, not
+erasure**: clones, forks, or caches made before the rewrite may still retain the
+old commit SHAs. No secret or credential was ever involved — only an unrelated
+account name — so no rotation is required.

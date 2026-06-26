@@ -35,7 +35,7 @@ discipline to *your* real commands.
 | `hooks/scripts/verify-loop.sh` | A `Stop` hook — the **feedback** half of the loop. When code changed and a verify command is configured (the generated `.claude/harness-kit.json`), it surfaces that command so work is verified before "done". Non-blocking by default; opt into enforcement with `"blocking": true`. |
 | `skills/new-spec/`, `skills/adr/`, `skills/worktree/` | Workflow skills — `/harness-kit:new-spec` scaffolds a spec triplet (spec / plan / context), `/harness-kit:adr` records the next numbered ADR, `/harness-kit:worktree` creates an isolated per-task worktree (only if you opt into that workflow). Structured work is where reliable output comes from (no measurement system needed). |
 | `skills/handoff/`, `skills/pickup/` | Resume loop — `/harness-kit:handoff` writes a resume block at a stopping point; `/harness-kit:pickup` continues from it in a fresh session. Validated with a discriminating eval: a fresh session reliably picked up a non-obvious decision a control (no handoff) missed 3/3. |
-| `skills/tdd/`, `skills/diagnose/`, `skills/karpathy-guidelines/` | Build discipline — `/harness-kit:tdd` (red → green → refactor, test first), `/harness-kit:diagnose` (reproduce → minimize → hypothesize → fix the cause → regression-test), and coding guidelines that counter common LLM mistakes (surgical changes, no overcomplication, verifiable success). |
+| `skills/tdd/`, `skills/diagnose/`, `skills/coding-guidelines/` | Build discipline — `/harness-kit:tdd` (red → green → refactor, test first), `/harness-kit:diagnose` (reproduce → minimize → hypothesize → fix the cause → regression-test), and coding guidelines that counter common LLM mistakes (surgical changes, no overcomplication, verifiable success). |
 | **Stack-conditional critics** (generated) | `introspect` generates a `db-verify` critic **only when it detects a data layer** (tailored to the real store — MongoDB `$exists` / Postgres `information_schema` / Redis) and a `ui-verify` critic **only when it detects a frontend** (tailored to the real dev command). They need an external DB client / browser driver — the kit does **not** bundle those; introspect tells you the one command to add them, you install them. This is the introspect-first thesis applied to verification: ship the check tailored to *your* stack, not a generic one to every repo. |
 | `templates/` | The spine, architect, conditional-critic (db-verify / ui-verify), spec-triplet, and ADR templates the skills fill. |
 
@@ -127,3 +127,10 @@ Early PoC (0.x — expect breaking changes). What is actually proven, stated hon
   not yet generated-and-run in CI.
 
 License: MIT.
+
+---
+
+> **Not affiliated with Anthropic.** Harness Kit is an independent, community
+> project — not affiliated with, endorsed by, or sponsored by Anthropic. "Claude"
+> and "Claude Code" are trademarks of Anthropic, PBC, used here descriptively to
+> indicate compatibility.
