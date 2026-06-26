@@ -6,6 +6,30 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-06-26
+
+Integration-audit fixes — close the connection-point holes between the plugin and
+Claude Code's hook runtime (verdict was otherwise solid: manifest, discovery,
+frontmatter, both enforcing hook paths, and config wiring all verified against the CC
+spec).
+
+### Fixed
+- **verify-loop's default (non-blocking) reminder was silently discarded.** It wrote
+  the "verify before done" reminder to stderr on exit 0 — which Claude Code drops for a
+  Stop hook (confirmed against the CC hooks docs: only
+  `hookSpecificOutput.additionalContext` continues the turn). So the kit's headline
+  feedback half was a runtime no-op in the default mode. Now emitted as
+  `hookSpecificOutput.additionalContext` on stdout, the channel CC honors. The contract
+  test was updated too — it had captured stderr, masking the hole with a green test.
+- **`render.sh` leak-guard scanned the whole agents dir** — a user's own agent carrying
+  a `{{TOKEN}}`-shaped string would trip a false leak abort and block generation. Now it
+  scans only the files render wrote this run.
+- **`render.sh` left orphan critics on re-run** — on the supported UPDATE path, dropping
+  a data layer / frontend left a stale `db-verify.md` / `ui-verify.md` the spine no
+  longer routes to. render now reaps those two render-owned files when no longer
+  applicable (never touching user-authored agents).
+- +4 tests (→ 150).
+
 ## [0.4.0] - 2026-06-26
 
 Hybrid renderer — shrink the probabilistic (LLM) surface of `introspect` to just the
@@ -230,6 +254,7 @@ First public release.
 - `.claude/harness-kit.json` per-repo config; plugin + marketplace manifests, MIT
   license, community-profile files, CI. 37 tests.
 
+[0.4.1]: https://github.com/jhlee0409/claude-harness-kit/releases/tag/v0.4.1
 [0.4.0]: https://github.com/jhlee0409/claude-harness-kit/releases/tag/v0.4.0
 [0.3.4]: https://github.com/jhlee0409/claude-harness-kit/releases/tag/v0.3.4
 [0.3.3]: https://github.com/jhlee0409/claude-harness-kit/releases/tag/v0.3.3

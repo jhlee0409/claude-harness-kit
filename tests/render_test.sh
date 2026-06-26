@@ -60,6 +60,20 @@ mkdir -p "$TMP/pw"; printf '{"name":"app","dependencies":{"vue":"^3"},"devDepend
 [ "$(render pw)" = "0" ] && ok "render exits 0" || no "render failed"
 body pw ui-verify.md | grep -q "repo's Playwright" && ok "Playwright driver note" || no "wrong e2e note"
 
+echo "[8] a pre-existing user agent with a {{SLOT}} must NOT trip a false leak abort (PIPE-01)"
+mkdir -p "$TMP/usr/.claude/agents"; printf 'module x\ngo 1.21\n' > "$TMP/usr/go.mod"
+printf -- '---\nname: my-own\n---\nUse {{MY_PLACEHOLDER}} here.\n' > "$TMP/usr/.claude/agents/my-own.md"
+bash "$RENDER" "$TMP/usr" >/dev/null 2>&1 && ok "render exits 0 despite a user agent carrying {{SLOT}}" || no "false leak abort on a user's agent"
+grep -qF '{{MY_PLACEHOLDER}}' "$TMP/usr/.claude/agents/my-own.md" && ok "user's own agent left untouched" || no "user agent was modified/removed"
+
+echo "[9] re-run reaps a stale conditional critic when the data layer is dropped (PIPE-02)"
+mkdir -p "$TMP/re"; printf '{"name":"app","dependencies":{"mongodb":"^6"}}' > "$TMP/re/package.json"; : > "$TMP/re/package-lock.json"
+bash "$RENDER" "$TMP/re" --out "$TMP/re-out" >/dev/null 2>&1
+[ -f "$TMP/re-out/db-verify.md" ] && ok "db-verify generated when data layer present" || no "no db-verify on first run"
+printf '{"name":"app","dependencies":{}}' > "$TMP/re/package.json"
+bash "$RENDER" "$TMP/re" --out "$TMP/re-out" >/dev/null 2>&1
+[ ! -f "$TMP/re-out/db-verify.md" ] && ok "stale db-verify reaped on re-run after data layer dropped" || no "orphan db-verify left behind"
+
 echo ""
 echo "RESULT: $PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ]

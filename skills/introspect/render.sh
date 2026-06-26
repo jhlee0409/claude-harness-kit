@@ -56,9 +56,19 @@ STORES = {
 def slot(t, k, v):
     return t.replace("{{%s}}" % k, v)
 
+written = []  # only the files THIS run produced — never touch user-authored agents.
 def write(fn, content):
     with open(os.path.join(out_dir, fn), "w") as f:
         f.write(content)
+    written.append(fn)
+
+def reap(fn):
+    # Remove a render-OWNED file that no longer applies (re-run/UPDATE path); a
+    # user-authored agent is never named here, so it is never removed.
+    try:
+        os.remove(os.path.join(out_dir, fn))
+    except FileNotFoundError:
+        pass
 
 generated = []
 
@@ -134,13 +144,20 @@ if is_frontend:
     write("ui-verify.md", t)
     generated.append("ui-verify.md (%s)" % fw)
 
-# Fail loudly if any slot leaked (a literal {{...}} reaching a user is the bug we kill).
+# Reap render-OWNED conditional critics that no longer apply (the re-run / UPDATE path):
+# a dropped data layer / frontend must not leave an orphan agent the spine no longer routes to.
+if not dl:
+    reap("db-verify.md")
+if not is_frontend:
+    reap("ui-verify.md")
+
+# Fail loudly if any slot leaked — scan ONLY the files this run wrote, so a user's own
+# agent in .claude/agents/ carrying a {{TOKEN}}-shaped string can't trip a false abort.
 leaks = []
-for fn in os.listdir(out_dir):
-    if fn.endswith(".md"):
-        body = open(os.path.join(out_dir, fn)).read()
-        if "{{" in body and "}}" in body and re.search(r"\{\{[A-Z0-9_]+\}\}", body):
-            leaks.append(fn)
+for fn in written:
+    body = open(os.path.join(out_dir, fn)).read()
+    if re.search(r"\{\{[A-Z0-9_]+\}\}", body):
+        leaks.append(fn)
 if leaks:
     sys.stderr.write("render: ERROR — unfilled slot(s) in: %s\n" % ", ".join(leaks))
     sys.exit(2)

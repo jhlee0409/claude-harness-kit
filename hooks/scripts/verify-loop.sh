@@ -31,6 +31,9 @@ msg="harness-kit: changes present — verify before done with: ${cmd}"
 if [ "$blocking" = "true" ]; then
   python3 -c 'import json,sys;print(json.dumps({"decision":"block","reason":sys.argv[1]}))' "$msg"
 else
-  printf '%s\n' "$msg" >&2
+  # Non-blocking: surface via the documented Stop channel on STDOUT. A Stop hook's
+  # stderr (and plain stdout) on exit 0 is DISCARDED by Claude Code — only
+  # hookSpecificOutput.additionalContext continues the turn with the reminder.
+  python3 -c 'import json,sys;print(json.dumps({"hookSpecificOutput":{"hookEventName":"Stop","additionalContext":sys.argv[1]}}))' "$msg"
 fi
 exit 0

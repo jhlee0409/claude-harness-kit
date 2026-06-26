@@ -17,10 +17,13 @@ mkproj(){
   [ "$3" = dirty ] && echo changed > "$d/work.txt"
 }
 
-echo "[1] config + dirty + non-blocking → reminder names the verify command"
+echo "[1] config + dirty + non-blocking → reminder on the STDOUT Stop channel (additionalContext)"
 d="$TMP/p1"; mkproj "$d" '{"verify_command":"tsc --noEmit && vitest run","blocking":false}' dirty
-out="$(CLAUDE_PROJECT_DIR="$d" bash "$HOOK" 2>&1 1>/dev/null)"
-echo "$out" | grep -q "tsc --noEmit && vitest run" && ok "reminder contains the verify command" || no "no reminder (got: $out)"
+# Capture STDOUT — CC discards a Stop hook's stderr on exit 0, so the reminder MUST be
+# emitted as hookSpecificOutput.additionalContext on stdout to actually reach the turn.
+out="$(CLAUDE_PROJECT_DIR="$d" bash "$HOOK" 2>/dev/null)"
+echo "$out" | python3 -c 'import json,sys;d=json.load(sys.stdin);ctx=d.get("hookSpecificOutput",{}).get("additionalContext","");sys.exit(0 if d.get("hookSpecificOutput",{}).get("hookEventName")=="Stop" and "tsc --noEmit && vitest run" in ctx else 1)' \
+  && ok "non-blocking reminder delivered via additionalContext" || no "reminder not on the honored stdout channel (got: $out)"
 
 echo "[2] config + dirty + blocking → JSON decision=block"
 d="$TMP/p2"; mkproj "$d" '{"verify_command":"pytest","blocking":true}' dirty
