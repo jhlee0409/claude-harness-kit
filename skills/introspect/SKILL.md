@@ -123,7 +123,8 @@ Record the answer; it drives the `worktree_workflow` flag and the
      without being told to. One line per agent it can use, each with a *when*.
      This is what turns "auto-orchestration" from description-matching luck into
      explicit guidance. **List ONLY agents that actually exist**: the
-     `<stack>-architect`(s) you generated THIS run + the plugin's `change-verifier`.
+     `<stack>-architect`(s) you generated THIS run + the plugin's `change-verifier`
+     and `claim-checker`.
      Do NOT name an agent that is not installed or generated (there is no
      `db-verify` agent — don't invent one). A detected concern with no agent
      (a database, an external API) becomes a `§0.2` verify rule, not a routing
@@ -131,6 +132,7 @@ Record the answer; it drives the `worktree_workflow` flag and the
      ```
      - `typescript-architect` — structural / refactoring / deepening architecture work.
      - `change-verifier` — before reporting any change "done" (callsites, wiring, tests, real-run).
+     - `claim-checker` — before a high-stakes terminal/analytical claim (limit / sufficient / fully-solves).
      ```
    - `{{ARCHITECTURE_NOTE}}` — name the `<stack>-architect` agent(s) you created
      and, for a monorepo, the sub-context map.

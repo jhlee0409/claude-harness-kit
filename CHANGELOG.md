@@ -41,6 +41,11 @@ First public release.
   control fell into the consistency trap 3/3 — proving the block transfers context
   the repo alone does not reveal.
 - `change-verifier` read-only critic agent.
+- `claim-checker` read-only critic agent + spine `§0.6 No overclaim` — falsifies a
+  terminal/analytical claim (limit / sufficient / fully-solves) at the conclusion
+  boundary: measured or asserted, and was the falsifier run? An independent check,
+  not a hook (provenance words are forgeable — an automated gate is 0% precision).
+  Effect is marginal-but-real, not a fix; the only proven 100% falsifier is a human.
 - `protected-branch-guard` PreToolUse hook (asks before commit/push on a protected
   branch). Branches are configurable per repo via `.claude/harness-kit.json`
   `protected_branches` — precedence: env override > repo config > built-in default.

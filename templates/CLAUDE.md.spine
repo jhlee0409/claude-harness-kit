@@ -33,6 +33,13 @@ logical unit. Fix hook failures at the root, never `--no-verify`.
 **0.5 Scope lock.** On a negative constraint ("only X", "not Y"), re-acknowledge
 it and stop before exceeding it.
 
+**0.6 No overclaim.** Before a terminal / analytical claim — "limit", "ceiling",
+"impossible", "sufficient", "complete", "fully solves", "no effect" — self-gate:
+can a measurement or check falsify this? If it's cheap and unrun, run it first.
+State a measured fact or "not verified — <what's missing>", never an unverified
+conclusion. For a high-stakes conclusion the user will act on, delegate to
+`claim-checker`.
+
 ## Test discipline
 {{TEST_DISCIPLINE}}
 
