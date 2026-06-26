@@ -32,7 +32,8 @@ discipline to *your* real commands.
 | `agents/change-verifier.md` | A read-only critic that independently proves a change is complete (callsites, wiring, tests, real-run evidence) before it's reported done. |
 | `hooks/protected-branch-guard.sh` | A `PreToolUse` guard that asks before a `git commit`/`git push` on a protected branch. Fires in every repo the plugin is installed into. |
 | `hooks/verify-loop.sh` | A `Stop` hook — the **feedback** half of the loop. When code changed and a verify command is configured (the generated `.claude/harness-kit.json`), it surfaces that command so work is verified before "done". Non-blocking by default; opt into enforcement with `"blocking": true`. |
-| `templates/` | The spine + architect templates `introspect` fills. |
+| `skills/new-spec/`, `skills/adr/` | Artifact-management skills — `/harness-kit:new-spec` scaffolds a spec triplet (spec / plan / context), `/harness-kit:adr` records the next numbered ADR. Structured work is where reliable output comes from (no measurement system needed). |
+| `templates/` | The spine, architect, spec-triplet, and ADR templates the skills fill. |
 
 ## Install
 

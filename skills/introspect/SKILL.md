@@ -144,9 +144,12 @@ directly.
    - `protected_branches` — seed from the repo's real long-lived branches; the
      protected-branch guard asks before commit/push on these.
 
-4. **Scaffolding** (only if absent): `<target>/specs/.gitkeep`,
-   `<target>/docs/adr/0000-record-architecture-decisions.md` (a one-paragraph
-   ADR-process starter). Skip if the repo already has these.
+4. **Scaffolding** (only if absent): ensure `scratch/` is gitignored (append it
+   to `.gitignore`); create `<target>/specs/.gitkeep` and
+   `<target>/docs/adr/0000-record-architecture-decisions.md` (a one-paragraph ADR
+   starter). The `/harness-kit:new-spec` and `/harness-kit:adr` skills (from the
+   plugin) create specs and ADRs on demand — don't pre-build them here. Skip
+   anything the repo already has.
 
 Never write secrets, never touch `.env`, never overwrite a file you did not
 generate without showing the diff first.

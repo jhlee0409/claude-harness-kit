@@ -36,6 +36,16 @@ it and stop before exceeding it.
 ## Test discipline
 {{TEST_DISCIPLINE}}
 
+## Workflow
+- **Specs.** Non-trivial work (≥2 modules / ≥3 commits / a new ADR / forward-only)
+  starts with a spec: `/harness-kit:new-spec <name>` scaffolds
+  `specs/<date>-<name>/{spec,plan,context}.md`. Load the plan tasks and surface
+  N/M. Skip the spec for small work (single file, doc-only, follow-up).
+- **Decisions.** Record a non-obvious or hard-to-reverse decision as an ADR:
+  `/harness-kit:adr <title>` → `docs/adr/NNNN-*.md`.
+- **Scratch.** Temp / working files go in a gitignored `scratch/` (or `/tmp`),
+  never the repo root.
+
 ## Agents — the main agent delegates here automatically (no need to name them)
 {{AGENT_ROUTING}}
 

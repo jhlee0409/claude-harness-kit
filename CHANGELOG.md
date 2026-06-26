@@ -22,6 +22,11 @@ First public release.
   to the repo's real verify command via the generated `.claude/harness-kit.json`.
   Non-blocking by default (reminds, does not auto-run); opt into enforcement with
   `"blocking": true`. 4-case isolation test suite.
+- `new-spec` + `adr` workflow skills — `/harness-kit:new-spec <name>` scaffolds a
+  spec triplet (`specs/<date>-<name>/{spec,plan,context}.md`); `/harness-kit:adr
+  <title>` records the next numbered ADR (`docs/adr/NNNN-*.md`). The generated
+  spine gains a `## Workflow` section (spec discipline / ADR / scratch). Reliable
+  output comes from this structured discipline, not a measurement system.
 - `change-verifier` read-only critic agent.
 - `protected-branch-guard` PreToolUse hook (asks before commit/push on a protected
   branch). Branches are configurable per repo via `.claude/harness-kit.json`
