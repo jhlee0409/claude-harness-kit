@@ -33,16 +33,24 @@ for s in $(grep -oE '/harness-kit:[a-z][a-z-]+' "$SPINE" | sed 's#/harness-kit:#
   [ -d "$ROOT/skills/$s" ] && ok "skill '/harness-kit:$s' → skills/$s/" || no "spine names /harness-kit:$s but skills/$s/ missing"
 done
 
-echo "[4] slot contract — every {{SLOT}} in the generated templates is documented in SKILL"
-slots="$(grep -hoE '[{][{][A-Z0-9_]+[}][}]' \
-          "$SPINE" \
+echo "[4] slot contract — spine slots documented in SKILL (LLM fills); agent slots handled in render.sh (deterministic)"
+RENDER="$ROOT/skills/introspect/render.sh"
+spine_slots="$(grep -hoE '[{][{][A-Z0-9_]+[}][}]' "$SPINE" | sort -u)"
+[ -n "$spine_slots" ] || no "no spine slots parsed (parser drift)"
+for slot in $spine_slots; do
+  grep -qF "$slot" "$SKILL" && ok "spine $slot documented in SKILL" \
+    || no "spine $slot used but NOT documented in SKILL §4 — would render literally"
+done
+# The three agent templates are filled by render.sh, not the LLM — assert it handles
+# (the bare name of) every slot, so a template slot can never leak into a user's agent.
+agent_slots="$(grep -hoE '[{][{][A-Z0-9_]+[}][}]' \
           "$ROOT/templates/agents/stack-architect.md" \
           "$ROOT/templates/agents/db-verify.md" \
-          "$ROOT/templates/agents/ui-verify.md" | sort -u)"
-[ -n "$slots" ] || no "no slots parsed from the templates (parser drift)"
-for slot in $slots; do
-  grep -qF "$slot" "$SKILL" && ok "$slot documented in SKILL" \
-    || no "$slot used in a template but NOT documented in SKILL §4 — would render literally"
+          "$ROOT/templates/agents/ui-verify.md" | tr -d '{}' | sort -u)"
+[ -n "$agent_slots" ] || no "no agent slots parsed (parser drift)"
+for slot in $agent_slots; do
+  grep -qF "$slot" "$RENDER" && ok "agent slot $slot handled in render.sh" \
+    || no "agent slot $slot NOT handled in render.sh — would leak into the generated agent"
 done
 
 echo ""

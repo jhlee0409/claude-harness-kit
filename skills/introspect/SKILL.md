@@ -72,13 +72,13 @@ directly.
 - **Tier 1 — always.** The CLAUDE.md §0 spine + the generic critics from the
   plugin. Every repo gets this.
 - **Tier 2 — conditional, you generate it:**
-  - any compiled/typed language or framework → a `<stack>-architect` agent (§4.2).
+  - any compiled/typed language or framework → a `<stack>-architect` agent (§4 step 2).
   - **frontend framework** (React / Next / Vue / Svelte) → generate a `ui-verify`
-    critic (§4.3) tailored to the dev command + framework, and list it in the spine
+    critic (§4 step 2) tailored to the dev command + framework, and list it in the spine
     `## Critics`. It needs a browser driver, which the kit does NOT bundle — surface
     the setup as guidance in §5, never copy a tool in.
   - **data layer present** (mongodb / postgres / redis / …) → generate a `db-verify`
-    critic (§4.3) tailored to the detected store, and list it in the spine
+    critic (§4 step 2) tailored to the detected store, and list it in the spine
     `## Critics`. It needs the store's client, which the kit does NOT bundle —
     surface the setup as guidance in §5.
   - monorepo → **re-run `detect.sh` against each `members[]` dir** (the root scan
@@ -141,57 +141,37 @@ Record the answer; it drives the `worktree_workflow` flag and the
      `` `/harness-kit:worktree <slug>` (`../<repo>-<slug>`); the main checkout stays read-only for edits. ``
      If **no**, leave it empty (remove the placeholder line entirely).
    - `{{CONDITIONAL_CRITICS}}` — the stack-conditional critics you generated THIS
-     run (§4.3): a `db-verify` row if the data layer was present, a `ui-verify` row
+     run (§4 step 2): a `db-verify` row if the data layer was present, a `ui-verify` row
      if a frontend framework was present. Generated neither → remove the placeholder
      line entirely. Format each like the static critic rows, e.g.:
      `` - `db-verify` — is a data claim true against the real {{STORE}} store? — before a data-touching change. ``
      `` - `ui-verify` — does the UI actually render and work? — after a frontend change. ``
 
-2. **`.claude/agents/<stack>-architect.md`** — one per primary stack, from
-   `templates/agents/stack-architect.md`. Derive `{{STACK}}` from the primary
-   language and sanitize it for the agent `name:` — strip dots (`next.js` →
-   `nextjs-architect`). Fill `{{FRAMEWORKS}}`, `{{LANGUAGE}}`, `{{TEST_RUNNER}}`,
-   `{{TEST_COMMAND}}`, `{{BUILD_COMMAND}}`, and `{{TEST_MANDATE}}` ("Write the
-   failing test first." for backend/library; "Add/extend tests for the change."
-   for frontend).
-   - **Omit empty slots (D2 dogfood fix).** A detected value can be empty — a Go/Rust
-     repo has no framework, some repos have no test runner. NEVER render an empty
-     `()`, an empty `` `` `` inline-code span, or a dangling `Build:` / `Test runner:`
-     line: drop the whole line or parenthetical when its slot is empty (the same rule
-     as `{{WORKTREE_RULE}}` in step 1). When there is NO test runner at all, replace
-     the test lines with: "No test runner configured — verify behavior end-to-end
-     against the real app (§0.3); add a runner before claiming a change works."
+2. **The generated agents — `render.sh` writes these DETERMINISTICALLY; do NOT
+   hand-fill them.** The `<stack>-architect` and the conditional `db-verify` /
+   `ui-verify` critics have only pure-data / table-lookup slots, so a script fills
+   them — which removes the LLM slot-fill error class (a wrong store idiom, an empty
+   `()` / backtick, a dir-name project_name) and makes the output testable. Run:
+   ```bash
+   bash "${CLAUDE_PLUGIN_ROOT}/skills/introspect/render.sh" <target>
+   ```
+   It runs detection, then writes into `<target>/.claude/agents/`:
+   - `<stack>-architect.md` — always (when a language was detected); `{{STACK}}` is the
+     clean language slug, empty slots are omitted, a no-test-runner repo gets a
+     fallback instead of empty backticks.
+   - `db-verify.md` — ONLY when a data layer is detected, tailored to the store
+     (MongoDB / PostgreSQL / MySQL / SQLite / Redis — `render.sh` owns the idiom table
+     and reads the Prisma `schema.prisma` provider, so a MySQL repo is never given
+     Postgres-only queries).
+   - `ui-verify.md` — ONLY when a frontend framework is detected (the real dev command
+     + the e2e driver note from the repo's own Playwright / Cypress deps).
+   `render.sh` exits non-zero if any slot would leak. Then **list each critic it
+   generated in the spine's `{{CONDITIONAL_CRITICS}}` slot (step 1).** The ONLY slots
+   the LLM fills are the spine's judgment ones in step 1 (`{{STACK_LINES}}` /
+   `{{TEST_DISCIPLINE}}` / `{{AGENT_ROUTING}}` / `{{ARCHITECTURE_NOTE}}`) — that is the
+   irreducible probabilistic residue; review it.
 
-3. **`.claude/agents/db-verify.md` and/or `.claude/agents/ui-verify.md`** — the
-   stack-conditional critics, generated ONLY when the matching signal is present.
-   Templated like the architect (the eight static critics stay in the plugin; these
-   are generated because their commands are stack-specific).
-   - **data layer detected** → from `templates/agents/db-verify.md`. Fill
-     `{{PROJECT_NAME}}`, `{{STORE}}` (the human name), and `{{STORE_VERIFY_HOWTO}}`:
-
-     | Detected store | `{{STORE}}` | `{{STORE_VERIFY_HOWTO}}` |
-     |---|---|---|
-     | mongodb / mongoose / motor | MongoDB | Count with `$exists`: `db.<coll>.countDocuments({ <field>: { $exists: true } })` vs total; sample with `db.<coll>.find({}, { <field>: 1 }).limit(10)`; check the type of sampled values. Use `mongosh` or the repo's driver. |
-     | postgres / pg / drizzle / sqlalchemy | PostgreSQL | Confirm the column in `information_schema.columns`; count population with `SELECT count(*) FILTER (WHERE <col> IS NOT NULL), count(*) FROM <table>;`; read the declared type from `information_schema.columns.data_type`. Use `psql` or the repo's client. |
-     | mysql | MySQL | Confirm the column in `information_schema.columns`; count population with `SELECT COUNT(*), SUM(<col> IS NOT NULL) FROM <table>;` (NO `FILTER (WHERE …)` — that is Postgres-only syntax and errors on MySQL); read the type from `information_schema.columns`. Use the `mysql` client. |
-     | sqlite | SQLite | Confirm the column via `PRAGMA table_info(<table>)`; count population with `SELECT count(*), count(<col>) FROM <table>;`; sample rows. Use `sqlite3 <db-file>`. |
-     | redis / ioredis | Redis | Confirm a key/field with `EXISTS` / `HEXISTS`; check `TYPE <key>`; sample with a scoped `SCAN` (never `KEYS *` on a shared instance). Use `redis-cli`. |
-
-     `prisma`/`@prisma/client` is mapped to its real datasource provider by
-     `detect.sh` (it reads `schema.prisma`), so use the row for that provider — do
-     NOT assume Postgres. For any other store, fill the generic equivalent
-     (existence + population + type against the real store) and name the client.
-   - **frontend framework detected** → from `templates/agents/ui-verify.md`. Fill
-     `{{PROJECT_NAME}}`, `{{FRAMEWORK}}`, `{{DEV_COMMAND}}` (the repo's real dev
-     command), and `{{E2E_NOTE}}`:
-     - repo has `@playwright/test` → "Drive the browser with the repo's Playwright (`npx playwright …`)."
-     - repo has Cypress → "Drive with the repo's Cypress."
-     - neither → "If the Playwright MCP is connected, use its `browser_*` tools;
-       otherwise open `{{DEV_COMMAND}}` and capture a real-browser screenshot of the
-       flow." (Surface the browser-driver setup in §5 — the kit bundles none.)
-   - List each generated critic in the spine `{{CONDITIONAL_CRITICS}}` slot (step 1).
-
-4. **`.claude/harness-kit.json`** — the single per-repo config both plugin hooks
+3. **`.claude/harness-kit.json`** — the single per-repo config both plugin hooks
    read (precedence for the hooks: env override > this file > built-in default).
    ```json
    {
@@ -222,7 +202,7 @@ Record the answer; it drives the `worktree_workflow` flag and the
      pr-shepherd reports state + "you decide" rather than fabricating MERGEABLE).
      Omit the whole block if there's no PR host (a local-only repo).
 
-5. **Scaffolding** (only if absent): ensure `scratch/` is gitignored (append it
+4. **Scaffolding** (only if absent): ensure `scratch/` is gitignored (append it
    to `.gitignore`); create `<target>/specs/.gitkeep` and
    `<target>/docs/adr/0000-record-architecture-decisions.md` (a one-paragraph ADR
    starter). The `/harness-kit:new-spec` and `/harness-kit:adr` skills (from the

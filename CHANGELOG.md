@@ -6,6 +6,32 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-06-26
+
+Hybrid renderer — shrink the probabilistic (LLM) surface of `introspect` to just the
+spine's judgment prose.
+
+### Added
+- **`render.sh` — a deterministic renderer for the three generated agent files** (the
+  `<stack>-architect` and the conditional `db-verify` / `ui-verify` critics). Those
+  files have only pure-data / table-lookup slots, so a script fills them instead of the
+  LLM. This makes the whole class of slot-fill defects the dogfood pass found
+  (wrong store idiom, empty `()` / backticks, dir-name project_name, a leaked
+  `{{SLOT}}`) **deterministically impossible** — `render.sh` exits non-zero if any slot
+  would leak — and **fully testable** (`tests/render_test.sh`, 21 cases across the
+  stack matrix). The store-verify idiom table now lives in `render.sh` as the single
+  source of truth.
+- +23 tests (→ 146).
+
+### Changed
+- **`introspect` (SKILL §4)** now runs `render.sh` for the agent files instead of
+  hand-filling templates; the **only** LLM-filled, probabilistic part left is the
+  spine's judgment slots (`{{ARCHITECTURE_NOTE}}` / `{{STACK_LINES}}` /
+  `{{TEST_DISCIPLINE}}` / `{{AGENT_ROUTING}}`) — the irreducible residue, which the
+  README/dogfood-log now scope precisely.
+- `generation_contract_test` slot-contract split: spine slots are checked against the
+  SKILL (LLM fills them), agent slots against `render.sh` (the renderer fills them).
+
 ## [0.3.4] - 2026-06-26
 
 Test-hardening — deterministic guards for the contract around the (probabilistic)
@@ -204,6 +230,7 @@ First public release.
 - `.claude/harness-kit.json` per-repo config; plugin + marketplace manifests, MIT
   license, community-profile files, CI. 37 tests.
 
+[0.4.0]: https://github.com/jhlee0409/claude-harness-kit/releases/tag/v0.4.0
 [0.3.4]: https://github.com/jhlee0409/claude-harness-kit/releases/tag/v0.3.4
 [0.3.3]: https://github.com/jhlee0409/claude-harness-kit/releases/tag/v0.3.3
 [0.3.2]: https://github.com/jhlee0409/claude-harness-kit/releases/tag/v0.3.2

@@ -36,7 +36,8 @@ discipline to *your* real commands.
 | `skills/new-spec/`, `skills/adr/`, `skills/worktree/` | Workflow skills — `/harness-kit:new-spec` scaffolds a spec triplet (spec / plan / context), `/harness-kit:adr` records the next numbered ADR, `/harness-kit:worktree` creates an isolated per-task worktree (only if you opt into that workflow). Structured work is where reliable output comes from (no measurement system needed). |
 | `skills/handoff/`, `skills/pickup/` | Resume loop — `/harness-kit:handoff` writes a resume block at a stopping point; `/harness-kit:pickup` continues from it in a fresh session. Validated with a discriminating eval: a fresh session reliably picked up a non-obvious decision a control (no handoff) missed 3/3. |
 | `skills/tdd/`, `skills/diagnose/`, `skills/coding-guidelines/` | Build discipline — `/harness-kit:tdd` (red → green → refactor, test first), `/harness-kit:diagnose` (reproduce → minimize → hypothesize → fix the cause → regression-test), and coding guidelines that counter common LLM mistakes (surgical changes, no overcomplication, verifiable success). |
-| **Stack-conditional critics** (generated) | `introspect` generates a `db-verify` critic **only when it detects a data layer** (tailored to the real store — MongoDB `$exists` / Postgres `information_schema` / Redis) and a `ui-verify` critic **only when it detects a frontend** (tailored to the real dev command). They need an external DB client / browser driver — the kit does **not** bundle those; introspect tells you the one command to add them, you install them. This is the introspect-first thesis applied to verification: ship the check tailored to *your* stack, not a generic one to every repo. |
+| **Stack-conditional critics** (generated) | `introspect` generates a `db-verify` critic **only when it detects a data layer** (tailored to the real store — MongoDB `$exists` / Postgres `information_schema` / MySQL / SQLite / Redis) and a `ui-verify` critic **only when it detects a frontend** (tailored to the real dev command). They need an external DB client / browser driver — the kit does **not** bundle those; introspect tells you the one command to add them, you install them. This is the introspect-first thesis applied to verification: ship the check tailored to *your* stack, not a generic one to every repo. |
+| `skills/introspect/render.sh` | **Deterministic renderer** for the three generated agent files (architect + the two conditional critics). Their slots are pure-data / table-lookup, so a script fills them — no LLM, no slot leak, fully tested. Shrinks the probabilistic surface to just the spine's judgment prose. |
 | `templates/` | The spine, architect, conditional-critic (db-verify / ui-verify), spec-triplet, and ADR templates the skills fill. |
 
 ## Install
@@ -123,11 +124,13 @@ Early PoC (0.x — expect breaking changes). What is actually proven, stated hon
   Next.js + Prisma(MySQL) frontend (`taxonomy`). Conditional-critic gating, the
   store-verify idioms, and reference integrity validated clean on every stack; the
   plumbing defects it surfaced are fixed (see [`docs/dogfood-log.md`](docs/dogfood-log.md)).
-- **Harness generation is LLM-driven** from those tested templates — this is the one
-  *probabilistic, not guaranteed* step: detection is deterministic, but turning it into
-  a CLAUDE.md/agents is a model honoring the SKILL prompt, so **review the generated
-  harness before committing it.** The generated `db-verify` / `ui-verify` critics are
-  template- and signal-tested, not generated-and-run in CI.
+- **Generation is mostly deterministic.** The three generated agent files (the
+  `<stack>-architect` and the conditional `db-verify` / `ui-verify` critics) are
+  rendered by a script (`render.sh`) — same input, same output, fully tested
+  (including the per-store verify idioms), so they can't leak a slot or pick the wrong
+  store query. The **only** LLM-filled, *probabilistic* part left is the spine's
+  judgment prose (the architecture note, the stack summary). Review that before
+  committing — it's the irreducible residue.
 
 License: MIT.
 

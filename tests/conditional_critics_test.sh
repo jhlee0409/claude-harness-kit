@@ -9,6 +9,7 @@ set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 DETECT="$ROOT/skills/introspect/detect.sh"
 SKILL="$ROOT/skills/introspect/SKILL.md"
+RENDER="$ROOT/skills/introspect/render.sh"
 SPINE="$ROOT/templates/CLAUDE.md.spine"
 DBV="$ROOT/templates/agents/db-verify.md"
 UIV="$ROOT/templates/agents/ui-verify.md"
@@ -37,18 +38,20 @@ echo "[3] spine exposes the conditional-critics slot"
 has "$SPINE" '{{CONDITIONAL_CRITICS}}' && ok "spine has {{CONDITIONAL_CRITICS}}" || no "spine missing slot"
 
 echo "[4] introspect store-table covers every store detect.sh surfaces"
+# The store idiom table now lives in render.sh (single source of truth, deterministic).
 for store in mongodb postgres mysql sqlite redis; do
-  grep -q "\b$store\b" "$SKILL" && ok "SKILL store-table mentions $store" || no "SKILL missing $store mapping"
+  grep -q "\"$store\"" "$RENDER" && ok "render.sh store table has $store" || no "render.sh missing $store mapping"
 done
 # M3B idiom coverage — each store row must carry its SIGNATURE verify idiom, so a row
 # can't silently degrade to a wrong/empty howto (e.g. Postgres FILTER on MySQL = error).
-grep -qF '$exists' "$SKILL"          && ok "mongodb idiom (\$exists)"           || no "mongodb howto missing \$exists"
-grep -q  'information_schema' "$SKILL" && ok "postgres idiom (information_schema)" || no "postgres howto missing information_schema"
-grep -qF 'NO `FILTER' "$SKILL"        && ok "mysql idiom (no-FILTER warning)"    || no "mysql howto missing the no-FILTER warning"
-grep -q  'PRAGMA table_info' "$SKILL"  && ok "sqlite idiom (PRAGMA table_info)"   || no "sqlite howto missing PRAGMA"
-grep -q  'HEXISTS' "$SKILL"            && ok "redis idiom (HEXISTS)"             || no "redis howto missing HEXISTS"
-has "$SKILL" 'templates/agents/db-verify.md' && ok "SKILL generates from db-verify template" || no "SKILL not wired to db-verify template"
-has "$SKILL" 'templates/agents/ui-verify.md' && ok "SKILL generates from ui-verify template" || no "SKILL not wired to ui-verify template"
+grep -qF '$exists' "$RENDER"           && ok "mongodb idiom (\$exists)"           || no "mongodb howto missing \$exists"
+grep -q  'information_schema' "$RENDER" && ok "postgres idiom (information_schema)" || no "postgres howto missing information_schema"
+grep -qF 'NO `FILTER' "$RENDER"         && ok "mysql idiom (no-FILTER warning)"    || no "mysql howto missing the no-FILTER warning"
+grep -q  'PRAGMA table_info' "$RENDER"  && ok "sqlite idiom (PRAGMA table_info)"   || no "sqlite howto missing PRAGMA"
+grep -q  'HEXISTS' "$RENDER"            && ok "redis idiom (HEXISTS)"             || no "redis howto missing HEXISTS"
+has "$RENDER" 'db-verify.md' && ok "render.sh generates from db-verify template" || no "render.sh not wired to db-verify template"
+has "$RENDER" 'ui-verify.md' && ok "render.sh generates from ui-verify template" || no "render.sh not wired to ui-verify template"
+has "$SKILL" 'render.sh'     && ok "SKILL §4 invokes render.sh"                 || no "SKILL no longer invokes render.sh"
 
 echo "[5] detection emits the signals that trigger generation"
 f="$TMP/mongo-api"; mkdir -p "$f"

@@ -54,7 +54,8 @@ rendering. All fix-now items below are fixed in this release with regression tes
   as a verifiable store.
 - A script *body* (not its npm name) is captured for `dev`/`build`, so a `concurrently …`
   dev script renders verbatim rather than as `<pm> dev`.
-- **The generation step is LLM slot-filling and therefore probabilistic** — the
-  irreducible residue. Detection is deterministic and tested; turning it into a
-  CLAUDE.md/agents is a model honoring the SKILL prompt. Review the generated harness
-  before committing it.
+- **The agent files are now rendered deterministically** by `render.sh` (the
+  `<stack>-architect` + the conditional `db-verify` / `ui-verify`) — fully tested, no
+  slot leak possible, the store idioms are a table in the script. The **only**
+  probabilistic residue left is the spine's judgment prose (architecture note, stack
+  summary), filled by the LLM; review that before committing.
