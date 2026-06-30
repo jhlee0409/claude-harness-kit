@@ -6,6 +6,46 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-06-30
+
+**Dual-runtime support + agentic engine.** The kit now works with both Claude Code
+and OpenCode — same skills, same discipline, your runtime. This release also adds the
+first four modules of the agentic engine layer: cross-vendor verification, RAG-based
+feedback retrieval, intent routing, and verify-evidence capture.
+
+### Added — OpenCode adapter (`adapters/opencode/`)
+- **Plugin entry point** with three hooks: verify-loop (feedback), branch-guard (protected
+  branch), and compaction (resume). Config resolved from `.opencode/harness-kit.json`,
+  falling back to `.claude/harness-kit.json`. 13 dogfood tests (mock shell, all pass).
+
+### Added — Agentic engine (`agentic-engine/`)
+Four modules, 83 tests total, all passing:
+
+- **cross-vendor** (`outside-voices.sh`) — N-vendor parallel verification core. Pure bash
+  for portability; vendor registry pattern (`_vendor_<name>_cmd`); 3-state exit
+  (ok/timeout/timeout-unanimous); durable capture to `.harness-kit/outside-voices/`.
+  CC Stop hook + OC `tool.execute.after` adapter. 21 shell tests.
+- **rag-feedback** — embedding-based retrieval of past feedback memory. Three providers
+  (OpenAI / Google / ollama opt-in); cosine similarity; hash-based cache invalidation
+  with atomic write. CC `UserPromptSubmit` adapter works fully; OC adapter stubbed
+  (`system.transform` doesn't expose the user's latest message). 20 unit tests.
+- **intent-router** — embedding-based SKILL.md classification. Cosine similarity
+  threshold; reuses rag-feedback's provider abstraction. CC `UserPromptSubmit` adapter
+  works fully; OC adapter stubbed (same limitation). 12 unit tests.
+- **verify-evidence** — JSONL evidence capture from critic agents. Regex parser
+  (`Verified:` / `Tests:` / `✓` / `typecheck:`); append-only `.harness-kit/evidence.jsonl`.
+  CC `SubagentStop` + OC `tool.execute.after` adapters. 17 unit tests.
+
+### Changed
+- README updated with dual-runtime install instructions and honest status for the new
+  modules (what's proven vs stubbed).
+
+### Known limitations
+- OC adapters for rag-feedback and intent-router are stubbed — `experimental.chat.system.transform`
+  fires per-LLM-call, not per-user-message, and doesn't expose the user's latest message.
+  Full OC adapters wait for a `chat.prompt.before` or equivalent hook.
+- OpenCode adapter tested with mock shell only; not yet dogfooded in a live OC session.
+
 ## [0.5.2] - 2026-06-28
 
 Security hardening — the kit's whole job is scanning an UNTRUSTED target repo, so the
